@@ -1,0 +1,13 @@
+
+.cproject
+.project
+*.prefs
+*.xml
+CMSIS/
+Debug/
+CMSIS_TEST Debug.launch
+*.ld
+Src/syscalls.c
+Src/sysmem.c
+Startup/
+.gitignore.bak
