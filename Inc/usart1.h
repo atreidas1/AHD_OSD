@@ -13,7 +13,7 @@
 #define RX_BUFFER_SIZE0 512
 
 void USART_init();
-void USART_write (uint8_t* dt, uint16_t sz);
+void USART_write (uint8_t* data, uint16_t sz);
 void USART_writeByte(uint8_t byte);
 uint8_t USART_readByte(void);
 uint16_t USART_available(void);
@@ -79,12 +79,12 @@ void USART_init() {
 	SET_BIT(USART1->CR1, USART_CR1_UE);
 }
 
-void USART_write(uint8_t *dt, uint16_t sz) {
+void USART_write(uint8_t *data, uint16_t sz) {
 	uint16_t ind = 0;
 	while (ind < sz) {
 		while (READ_BIT(USART1->SR, USART_SR_TXE) != (USART_SR_TXE)) {
 		}
-		USART1->DR = (uint16_t) dt[ind];
+		USART1->DR = (uint16_t) data[ind];
 		ind++;
 	}
 }
