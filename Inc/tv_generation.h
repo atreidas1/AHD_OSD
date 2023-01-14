@@ -68,7 +68,7 @@ void SPI1_DMA_Init() {
 	//Настройки DMA
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
 	DMA1_Channel3->CPAR = (uint32_t) &(SPI1->DR);
-	DMA1_Channel3->CCR |= (DMA_CCR_PSIZE_0| DMA_CCR_MSIZE_0 | DMA_CCR_MINC | DMA_CCR_DIR);
+	DMA1_Channel3->CCR |= (DMA_CCR_PSIZE_0| DMA_CCR_MSIZE_0 | DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE);
 }
 
 void SPI_DMA_write(uint16_t *data, uint16_t size) {
@@ -94,9 +94,9 @@ void SPI_clock_init() {
 	//пушпул, альтернативная функция
 	MODIFY_REG(GPIOA->CRL, GPIO_CRL_CNF0_0,
 			(GPIO_CRL_CNF0_1 | GPIO_CRL_MODE0_0 | GPIO_CRL_MODE0_1));
-	TIM2->PSC = 7200 - 1;		//насколько делится максимальная частота
-	TIM2->ARR = 20000 - 1;		//до скольки таймер считает перед сбросом
-	TIM2->CCR1 = 10000 - 1;		//на каком числе переключение
+	TIM2->PSC = 0;		//насколько делится максимальная частота
+	TIM2->ARR = 5;		//до скольки таймер считает перед сбросом
+	TIM2->CCR1 = 3;		//на каком числе переключение
 	SET_BIT(TIM2->CCER, TIM_CCER_CC1E);	//разблокируем выход
 	//OC1M = 110: режим 1 PWM - при счёте вверх, канал 1 находится в активном состоянии
 	//пока TIMx_CNT<TIMx_CCR1, иначе канал будет в неактивном состоянии; при счёте вниз,
@@ -153,6 +153,6 @@ void TV_generation_start() {
 	TV_EXTI_init();
 	SPI1_DMA_Init();
 	SPI_clock_init();
-	clearScreen(osd_buffer);
+	clearScreen(&osd_buffer[0][0]);
 }
 #endif

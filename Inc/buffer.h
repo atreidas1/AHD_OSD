@@ -9,7 +9,7 @@
 #define BUFFER_SIZE BUFFER_LINES*BUFFER_COLUMNS
 #define BUFFER_WIDTH_IN_BITS 8*BUFFER_COLUMNS
 
-uint8_t osd_buffer[BUFFER_COLUMNS][BUFFER_LINES];
+uint8_t osd_buffer[BUFFER_LINES][BUFFER_COLUMNS];
 
 uint8_t debug_buffer[BUFFER_COLUMNS*8 + 2];
 
@@ -36,7 +36,7 @@ void printBuffer(uint8_t *buff) {
 void printChar(uint8_t *buff, uint8_t x, uint8_t y, uint8_t symbol) {
 	uint16_t startIndex = symbol*15;
 	for (uint8_t i = 0; i < CHAR_HEIGHT; i++) {
-		*(buff + (y*8+i)*BUFFER_COLUMNS + x) = Fixedsys8x15[startIndex+i];
+		*(buff + (y*CHAR_HEIGHT+i)*BUFFER_COLUMNS + x) = Fixedsys8x15[startIndex+i];
 	}
 }
 
