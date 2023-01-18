@@ -339,6 +339,18 @@ static inline uint16_t mavlink_msg_battery_status_get_voltages(const mavlink_mes
     return _MAV_RETURN_uint16_t_array(msg, voltages, 10,  10);
 }
 
+
+/**
+ * @brief Get field voltages from battery_status message
+ *
+ * @return [mV] Battery voltage of cells 1 to 10 (see voltages_ext for cells 11-14). Cells in this field above the valid cell count for this battery should have the UINT16_MAX value. If individual cell voltages are unknown or not measured for this battery, then the overall battery voltage should be filled in cell 0, with all others set to UINT16_MAX. If the voltage of the battery is greater than (UINT16_MAX - 1), then cell 0 should be set to (UINT16_MAX - 1), and cell 1 to the remaining voltage. This can be extended to multiple cells if the total voltage is greater than 2 * (UINT16_MAX - 1).
+ */
+static inline uint16_t mavlink_msg_battery_status_get_voltages_i(const mavlink_message_t* msg, uint8_t cell_number)
+{
+    return _MAV_RETURN_int16_t(msg,  10 + cell_number);
+}
+
+
 /**
  * @brief Get field current_battery from battery_status message
  *
