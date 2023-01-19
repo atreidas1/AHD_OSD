@@ -3,15 +3,19 @@
 
 #include <stm32f1xx.h>
 #include "buffer.h"
+#include "osd_position.h"
 
-const uint16_t START_LINE = 57;
+#define START_LINE 30
 //const uint16_t END_STR = 735;
-const uint8_t LINES_PER_PIXEL = 4;
+#define LINES_PER_PIXEL 3
 
 volatile uint8_t isFrame = 0;
 volatile uint16_t strCounter = 0;
 volatile uint8_t strRepitCounter = 0;
 volatile uint16_t currentBufferStr = 0;
+
+uint8_t serialBuffer[100];
+uint8_t str_attitude1[] = "time_boot_ms: %10d";
 
 void EXTI3_IRQHandler(void) {
 	SET_BIT(EXTI->PR, EXTI_PR_PR3); //Считаем Кадры PR - регистр ожидания. Если не записать 1 то не выйдем из прерывания
@@ -19,6 +23,8 @@ void EXTI3_IRQHandler(void) {
 	isFrame = 1;
 	currentBufferStr = 0;
 }
+
+
 
 void EXTI4_IRQHandler(void) {
 	SET_BIT(EXTI->PR, EXTI_PR_PR4); //Считаем строки PR - регистр ожидания. Если не записать 1 то не выйдем из прерывания
@@ -30,6 +36,7 @@ void EXTI4_IRQHandler(void) {
 			DMA1_Channel3->CCR &= ~DMA_CCR_EN;
 			SPI1->CR1 |= (SPI_CR1_SSI);
 			TIM2->CR1 &= ~TIM_CR1_CEN;
+			uint16_t *ptr = &osd_buffer[currentBufferStr];
 
 			DMA1_Channel3->CMAR = (uint32_t) &osd_buffer[currentBufferStr];
 			DMA1_Channel3->CNDTR = BUFFER_COLUMNS/2;
@@ -40,9 +47,9 @@ void EXTI4_IRQHandler(void) {
 			SPI1->CR1 &= ~SPI_CR1_SSI;
 
 			strRepitCounter++;
-			if(strRepitCounter > LINES_PER_PIXEL) {
+			if(strRepitCounter >= LINES_PER_PIXEL) {
 				strRepitCounter = 0;
-				if(currentBufferStr < BUFFER_LINES) {
+				if(currentBufferStr < BUFFER_LINES - 1) {
 					currentBufferStr++;
 				} else {
 					isFrame = 0;
@@ -57,6 +64,7 @@ void SPI1_DMA_Init() {
 	//PA5 - SCK (floating input)
 	//PA6 - MISO (Alternate function PUSH/PULL)
 
+
 	RCC->APB2ENR |= (RCC_APB2ENR_SPI1EN | RCC_APB2ENR_IOPAEN);
 	GPIOA->CRL &= ~(GPIO_CRL_CNF5_0 | GPIO_CRL_CNF6_0);
 	GPIOA->CRL |= (GPIO_CRL_CNF5_0| GPIO_CRL_MODE6_0 | GPIO_CRL_MODE6_1 | GPIO_CRL_CNF6_1);
@@ -68,7 +76,12 @@ void SPI1_DMA_Init() {
 	//Настройки DMA
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
 	DMA1_Channel3->CPAR = (uint32_t) &(SPI1->DR);
-	DMA1_Channel3->CCR |= (DMA_CCR_PSIZE_0| DMA_CCR_MSIZE_0 | DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE);
+
+	DMA1_Channel3->CCR |= (DMA_CCR_PSIZE_0| DMA_CCR_MSIZE_0 | DMA_CCR_MINC | DMA_CCR_DIR );
+
+
+
+
 }
 
 void SPI_DMA_write(uint16_t *data, uint16_t size) {
@@ -103,7 +116,7 @@ void SPI_clock_init() {
 	//канал 1 находится в неактивном состоянии (OC1REF=0) пока TIMx_CNT>TIMx_CCR1,
 	// иначе - в активном (OC1REF=1).
 	SET_BIT(TIM2->CCMR1, (TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2));
-	//SET_BIT(TIM2->CR1, TIM_CR1_CEN); //Включить таймер
+	SET_BIT(TIM2->CR1, TIM_CR1_CEN); //Включить таймер
 }
 
 void startTimer() {
@@ -147,6 +160,9 @@ void TV_EXTI_init() {
 
 	NVIC_EnableIRQ(EXTI3_IRQn); // Включаем прерывание
 	NVIC_EnableIRQ(EXTI4_IRQn); // Включаем прерывание
+
+	NVIC_SetPriority(EXTI4_IRQn, 2);
+	NVIC_SetPriority(EXTI3_IRQn, 3);
 }
 
 void TV_generation_start() {
@@ -154,5 +170,8 @@ void TV_generation_start() {
 	SPI1_DMA_Init();
 	SPI_clock_init();
 	clearScreen(&osd_buffer[0][0]);
+
+	OSD_STATIC_IMAGE();
+
 }
 #endif

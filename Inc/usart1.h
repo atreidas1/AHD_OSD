@@ -141,7 +141,7 @@ void USART_init() {
 	//	Значение регистра USART_BRR = 468,75 * 16 = 7500.
 	//
 	//	USART1->BRR = 7500; // скорость 9600 бод
-	USART1->BRR = 7500;
+	USART1->BRR = 3750;
 	USART1->CR1|=USART_CR1_RXNEIE; //Разрешаем генерировать прерывание по приему
 	NVIC_EnableIRQ (USART1_IRQn); //Включаем прерывание, указываем вектор
 	NVIC_SetPriority(USART1_IRQn, 4);

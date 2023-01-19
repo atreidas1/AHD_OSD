@@ -11,3 +11,4 @@ Src/syscalls.c
 Src/sysmem.c
 Startup/
 .gitignore.bak
+Special Fonts/
