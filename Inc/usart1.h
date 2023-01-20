@@ -4,6 +4,7 @@
 #include <stm32f1xx.h>
 #include "mavlink/mavlink.h"
 #include "osd_data.h"
+#include "utils.h"
 
 #define RX_BUFFER_SIZE0 512
 

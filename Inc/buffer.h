@@ -34,26 +34,26 @@ void printBuffer(uint8_t *buff) {
 	}
 }
 
-void printChar(uint8_t *buff, uint8_t x, uint8_t y, uint8_t symbol) {
+static inline void printChar(uint8_t *buff, uint8_t x, uint8_t y, uint8_t symbol) {
 	uint16_t startIndex = symbol*15;
 	for (uint8_t i = 0; i < CHAR_HEIGHT; i++) {
 		*(buff + (y*CHAR_HEIGHT+i)*BUFFER_COLUMNS + x) = Fixedsys8x15[startIndex+i];
 	}
 }
 
-void printGrafic_8xN(uint8_t x, uint8_t y, uint8_t *symbol, uint8_t height) {
+void printGrafic_8xN(uint16_t x, uint16_t y, uint8_t *symbol, uint8_t height) {
 	for (uint8_t i = 0; i < height; i++) {
 		osd_buffer[y +i][x] = *(symbol+i);
 	}
 }
 
-void printGrafic_16xN(uint8_t x, uint8_t y, uint16_t *symbol, uint8_t height) {
+void printGrafic_16xN(uint16_t x, uint16_t y, uint16_t *symbol, uint8_t height) {
 	for (uint8_t i = 0; i < height; i++) {
 		*(uint16_t*)&osd_buffer[y +i][x] = *(symbol+i);
 	}
 }
 
-void printGrafic_32xN(uint8_t x, uint8_t y, uint32_t *symbol, uint8_t height) {
+void printGrafic_32xN(uint16_t x, uint16_t y, uint32_t *symbol, uint8_t height) {
 	for (uint8_t i = 0; i < height; i++) {
 		*(uint32_t*)&osd_buffer[y +i][x] = *(symbol+i);
 	}
@@ -66,8 +66,8 @@ void printStr(uint8_t *buff, uint8_t x, uint8_t y, uint8_t *string, uint8_t size
 	}
 }
 
-void setPixel(uint16_t x, uint16_t y) {
-	uint8_t bytePos = x >> 3;
+static inline void setPixel(uint16_t x, uint16_t y) {
+	osd_buffer[y][x>>3] |= 1 << (x & 0x07);
 }
 
 void drawCircle(int x0, int y0, int radius) {
@@ -98,12 +98,12 @@ void drawCircle(int x0, int y0, int radius) {
 	}
 }
 
-void drawLine(int x1, int y1, int x2, int y2) {
-    const int deltaX = abs(x2 - x1);
-    const int deltaY = abs(y2 - y1);
-    const int signX = x1 < x2 ? 1 : -1;
-    const int signY = y1 < y2 ? 1 : -1;
-    int error = deltaX - deltaY;
+void drawLine(int_fast16_t x1, int_fast16_t y1, int_fast16_t x2, int_fast16_t y2) {
+    uint16_t deltaX = utils_abs(x2 - x1);
+    uint16_t deltaY = utils_abs(y2 - y1);
+    int16_t signX = x1 < x2 ? 1 : -1;
+    int16_t signY = y1 < y2 ? 1 : -1;
+    int_fast16_t error = deltaX - deltaY;
     setPixel(x2, y2);
     while(x1 != x2 || y1 != y2)
    {
@@ -120,7 +120,6 @@ void drawLine(int x1, int y1, int x2, int y2) {
             y1 += signY;
         }
     }
-
 }
 
 #endif /* BUFFER_H_ */
