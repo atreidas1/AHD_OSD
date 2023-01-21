@@ -5,7 +5,7 @@
 typedef struct __osd_data {
 	// VFR_HUD ( #74 )
 	FixedPoint1 airspeed; /*< [m/s] Vehicle speed in form appropriate for vehicle type. For standard aircraft this is typically calibrated airspeed (CAS) or indicated airspeed (IAS) - either of which can be used by a pilot to estimate stall speed.*/
-	FixedPoint1 groundspeed; /*< [km/h] Current ground speed.*/
+	uint16_t groundspeed; /*< [km/h] Current ground speed.*/
 	int16_t alt; /*< [m] Current altitude (MSL).*/
 	int16_t climb; /*< [m/s] Current climb rate.*/
 	int16_t heading; /*< [deg] Current heading in compass units (0-360, 0=north).*/

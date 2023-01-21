@@ -22,6 +22,8 @@ static inline uint8_t* msToHourMinSecStr (uint32_t number, uint8_t *buffer) {
 	buffer[5] = ':';
 	buffer[6] = seconds/10 + '0';
 	buffer[7] = seconds%10 + '0';
+	buffer[8] = 0;
+
 	return buffer;
 }
 

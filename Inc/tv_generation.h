@@ -4,6 +4,7 @@
 #include <stm32f1xx.h>
 #include "buffer.h"
 #include "osd_position.h"
+#include "utils.h"
 
 #define START_LINE 30
 //const uint16_t END_STR = 735;
@@ -14,20 +15,55 @@ volatile uint16_t strCounter = 0;
 volatile uint8_t strRepitCounter = 0;
 volatile uint16_t currentBufferStr = 0;
 
+
+
+
 uint8_t serialBuffer[100];
 uint8_t str_attitude1[] = "time_boot_ms: %10d";
+
+uint16_t second = 0;
+uint8_t frames = 0;
+uint8_t buffer[12];
 
 void EXTI3_IRQHandler(void) {
 	SET_BIT(EXTI->PR, EXTI_PR_PR3); //Считаем Кадры PR - регистр ожидания. Если не записать 1 то не выйдем из прерывания
 	strCounter = 0;
 	isFrame = 1;
 	currentBufferStr = 0;
+
+	uint8_t *ptr;
+	ptr = intToString(osd_data.satellites_visible, buffer);
+	printStringWithPlaceholder(25, 4, ptr, 2);
+
+	ptr = intToString(osd_data.alt, buffer);
+	printStringWithPlaceholder(44, 108, ptr, 4);
+
+	ptr = msToHourMinSecStr(osd_data.time_boot_ms, buffer);
+	printStringWithPlaceholder(4, 227, ptr, 8);
+
+	ptr = FPToString(osd_data.climb, buffer);
+	printStringWithPlaceholder(45, 122, ptr, 6);
+
+	ptr = FPToString(osd_data.voltage, buffer);
+	printStringWithPlaceholder(25, 227, ptr, 4);
+
+	ptr = intToString(osd_data.groundspeed, buffer);
+	printStringWithPlaceholder(4, 108, ptr, 3);
+
+	ptr = FPToString(osd_data.current_battery, buffer);
+	printStringWithPlaceholder(33, 227, ptr, 5);
+
+	ptr = intToString(osd_data.current_consumed, buffer);
+	printStringWithPlaceholder(44, 227, ptr, 5);
+
+
 }
 
 
 
 void EXTI4_IRQHandler(void) {
 	SET_BIT(EXTI->PR, EXTI_PR_PR4); //Считаем строки PR - регистр ожидания. Если не записать 1 то не выйдем из прерывания
+
 
 	if (isFrame) {
 		strCounter++;
@@ -53,6 +89,7 @@ void EXTI4_IRQHandler(void) {
 					currentBufferStr++;
 				} else {
 					isFrame = 0;
+
 				}
 			}
 		}

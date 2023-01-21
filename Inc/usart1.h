@@ -37,7 +37,7 @@ uint8_t index1 = 0;
 void USART1_IRQHandler(void) {
 	if (READ_BIT(USART1->SR, USART_SR_RXNE)) {
 		if (mavlink_parse_char(chan, USART1->DR, &msg, &status)) {
-			//contain(msg.msgid);
+			contain(msg.msgid);
 			switch (msg.msgid) {
 			case MAVLINK_MSG_ID_ATTITUDE: {
 				osd_data.pitch = round(ToDeg(mavlink_msg_attitude_get_pitch(&msg)));
@@ -72,7 +72,7 @@ void USART1_IRQHandler(void) {
 				break;
 			case MAVLINK_MSG_ID_VFR_HUD: {
 				osd_data.airspeed = mavlink_msg_vfr_hud_get_airspeed(&msg)*36;
-				osd_data.groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg)*36;
+				osd_data.groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg)*3.6;
 				osd_data.alt = mavlink_msg_vfr_hud_get_alt(&msg);
 				osd_data.climb = toFixedPoint1(mavlink_msg_vfr_hud_get_climb(&msg));
 				osd_data.heading = mavlink_msg_vfr_hud_get_heading(&msg);

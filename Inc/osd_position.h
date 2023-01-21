@@ -8,8 +8,8 @@
 
 void GPS(){
 
-printGrafic_8xN(2, 0, &SpecialFonts8x15[LAT], 15); //LAT
-printGrafic_8xN(40, 0, &SpecialFonts8x15[LON], 15); //LON
+printGrafic_8xN(2, 1, &SpecialFonts8x15[LAT], 15); //LAT
+printGrafic_8xN(40, 1, &SpecialFonts8x15[LON], 15); //LON
 printGrafic_16xN(23, 0, &SpecialFonts16x15[SAT], 15); //SAT
 
 }
@@ -34,9 +34,13 @@ void NAVIGATION(){
 
 void ELECTRIC_TIME(){
 
-	printGrafic_16xN(2, 225, &SpecialFonts16x15[FLIGHT_TIME], 15); // FLIGHT TIME
-	printStr(&osd_buffer[0][0], 15, 225, "V", 1);
+	printGrafic_16xN(2, 223, &SpecialFonts16x15[FLIGHT_TIME], 15); // FLIGHT TIME
+	printString(24, 227, "V");
+	printString(32, 227, "A");
+
+	printGrafic_8xN(42, 223, &SpecialFonts8x15[mah], 15); //mah
 }
+
 void OSD_STATIC_IMAGE(){
 	GPS();
 	NAVIGATION();
