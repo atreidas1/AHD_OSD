@@ -34,11 +34,17 @@ void printBuffer(uint8_t *buff) {
 	}
 }
 
-static inline void printChar(uint8_t *buff, uint8_t x, uint8_t y, uint8_t symbol) {
-	uint16_t startIndex = symbol*15;
-	for (uint8_t i = 0; i < CHAR_HEIGHT; i++) {
-		*(buff + (y*CHAR_HEIGHT+i)*BUFFER_COLUMNS + x) = Fixedsys8x15[startIndex+i];
-	}
+static inline void printChar(uint8_t x, uint8_t y, uint8_t symbol) {
+		uint16_t startIndex = symbol*CHAR_HEIGHT;
+		osd_buffer[y][x] = Fixedsys8x15[startIndex];
+		osd_buffer[y+1][x] = Fixedsys8x15[startIndex+1];
+		osd_buffer[y+2][x] = Fixedsys8x15[startIndex+2];
+		osd_buffer[y+3][x] = Fixedsys8x15[startIndex+3];
+		osd_buffer[y+4][x] = Fixedsys8x15[startIndex+4];
+		osd_buffer[y+5][x] = Fixedsys8x15[startIndex+5];
+		osd_buffer[y+6][x] = Fixedsys8x15[startIndex+6];
+		osd_buffer[y+7][x] = Fixedsys8x15[startIndex+7];
+		osd_buffer[y+8][x] = Fixedsys8x15[startIndex+8];
 }
 
 void printGrafic_8xN(uint16_t x, uint16_t y, uint8_t *symbol, uint8_t height) {
@@ -59,10 +65,45 @@ void printGrafic_32xN(uint16_t x, uint16_t y, uint32_t *symbol, uint8_t height) 
 	}
 }
 
+static inline void printString(uint8_t x, uint8_t y, uint8_t *string) {
+	int i = 0;
+	while(*string != 0) {
+		printChar(x + i, y, *string - 32);
+		string++;
+		i++;
+	}
+}
 
-void printStr(uint8_t *buff, uint8_t x, uint8_t y, uint8_t *string, uint8_t size) {
-	for (uint8_t i = 0; i < size; i++) {
-		printChar(buff, x + i, y, *(string + i) - 32);
+static inline void printStringWithPlaceholder(uint32_t x, uint32_t y, uint8_t *string, uint32_t placeHolderSize) {
+	uint32_t i = 0;
+	uint32_t startIndex = 0;
+	while (*string != 0) {
+		startIndex = (*string - 32) * CHAR_HEIGHT;
+		osd_buffer[y][x] = Fixedsys8x15[startIndex];
+		osd_buffer[y + 1][x] = Fixedsys8x15[startIndex + 1];
+		osd_buffer[y + 2][x] = Fixedsys8x15[startIndex + 2];
+		osd_buffer[y + 3][x] = Fixedsys8x15[startIndex + 3];
+		osd_buffer[y + 4][x] = Fixedsys8x15[startIndex + 4];
+		osd_buffer[y + 5][x] = Fixedsys8x15[startIndex + 5];
+		osd_buffer[y + 6][x] = Fixedsys8x15[startIndex + 6];
+		osd_buffer[y + 7][x] = Fixedsys8x15[startIndex + 7];
+		osd_buffer[y + 8][x] = Fixedsys8x15[startIndex + 8];
+		x++;
+		string++;
+		i++;
+	}
+	while (i < placeHolderSize) {
+		osd_buffer[y][x] = 0;
+		osd_buffer[y + 1][x] = 0;
+		osd_buffer[y + 2][x] = 0;
+		osd_buffer[y + 3][x] = 0;
+		osd_buffer[y + 4][x] = 0;
+		osd_buffer[y + 5][x] = 0;
+		osd_buffer[y + 6][x] = 0;
+		osd_buffer[y + 7][x] = 0;
+		osd_buffer[y + 8][x] = 0;
+		i++;
+		x++;
 	}
 }
 

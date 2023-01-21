@@ -66,15 +66,15 @@ void USART1_IRQHandler(void) {
 
 			case MAVLINK_MSG_ID_BATTERY_STATUS: {
 				osd_data.current_consumed = mavlink_msg_battery_status_get_current_consumed(&msg);
-				osd_data.current_battery = mavlink_msg_battery_status_get_current_battery(&msg);
-				osd_data.voltage = mavlink_msg_battery_status_get_voltages_i(&msg, 0);
+				osd_data.current_battery = mavlink_msg_battery_status_get_current_battery(&msg)/100;
+				osd_data.voltage = mavlink_msg_battery_status_get_voltages_i(&msg, 0)/100;
 			}
 				break;
 			case MAVLINK_MSG_ID_VFR_HUD: {
-				osd_data.airspeed = mavlink_msg_vfr_hud_get_airspeed(&msg);
-				osd_data.groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);
+				osd_data.airspeed = mavlink_msg_vfr_hud_get_airspeed(&msg)*36;
+				osd_data.groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg)*36;
 				osd_data.alt = mavlink_msg_vfr_hud_get_alt(&msg);
-				osd_data.climb = mavlink_msg_vfr_hud_get_climb(&msg);
+				osd_data.climb = toFixedPoint1(mavlink_msg_vfr_hud_get_climb(&msg));
 				osd_data.heading = mavlink_msg_vfr_hud_get_heading(&msg);
 				osd_data.throttle = mavlink_msg_vfr_hud_get_throttle(&msg);
 			}
@@ -82,6 +82,7 @@ void USART1_IRQHandler(void) {
 
 			case MAVLINK_MSG_ID_RC_CHANNELS_RAW: {
 				osd_data.rssi = mavlink_msg_rc_channels_get_rssi(&msg);
+				osd_data.time_boot_ms = mavlink_msg_rc_channels_get_time_boot_ms(&msg);
 			}
 				break;
 			default:
