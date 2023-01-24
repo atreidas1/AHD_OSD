@@ -107,7 +107,7 @@ static inline void printStringWithPlaceholder(uint32_t x, uint32_t y, uint8_t *s
 	}
 }
 
-static inline void setPixel(uint16_t x, uint16_t y) {
+static inline void setPixel(uint32_t x, uint32_t y) {
 	osd_buffer[y][x>>3] |= 1 << (x & 0x07);
 }
 

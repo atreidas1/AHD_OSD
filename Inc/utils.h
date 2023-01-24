@@ -1,9 +1,12 @@
 #ifndef UTILS_H_
 #define UTILS_H_
+#include <math.h>
 
 #define ToDeg(x) (x*57.3)
+#define  radInDeg 0.01745329252
 
 typedef int32_t FixedPoint1;
+typedef int32_t FixedPoint3;
 
 //hh:mm:ss
 static inline uint8_t* msToHourMinSecStr (uint32_t number, uint8_t *buffer) {
@@ -76,8 +79,16 @@ static inline uint8_t* intToString(int32_t value, uint8_t *buffer) {
 	return buffer;
 }
 
-static inline uint16_t utils_abs(int16_t x) {
+static inline int32_t utils_abs(int32_t x) {
 	return x < 0 ? -x : x;
+}
+
+
+  FixedPoint3 getDistanceBetweenPointsNew(float latitude1, float longitude1, float latitude2, float longitude2) {
+	  float theta = longitude1 - longitude2;
+	  float rad1 = latitude1 * radInDeg;
+	  float rad2 = latitude2 * radInDeg;
+	  return 6371000*acos(sin(rad1) * sin(rad2) + cos(rad1) * cos(rad2) * cos(theta * radInDeg));
 }
 
 #endif /* UTILS_H_ */
