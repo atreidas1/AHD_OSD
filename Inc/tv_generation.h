@@ -5,6 +5,8 @@
 #include "buffer.h"
 #include "osd_position.h"
 #include "utils.h"
+#include "ardupilot_modes.h"
+#include "horizon.h"
 
 #define START_LINE 30
 //const uint16_t END_STR = 735;
@@ -41,7 +43,16 @@ void EXTI3_IRQHandler(void) {
 	ptr = msToHourMinSecStr(osd_data.time_boot_ms, buffer);
 	printStringWithPlaceholder(4, 227, ptr, 8);
 
-	ptr = FPToString(osd_data.climb, buffer);
+	if(osd_data.climb > 0){
+		printString(44, 122, "+");
+	}
+	else if(osd_data.climb < 0){
+		printString(44, 122, "-");
+	}
+	else{
+		printString(44, 122, " ");
+	}
+	ptr = FPToString(utils_abs(osd_data.climb), buffer);
 	printStringWithPlaceholder(45, 122, ptr, 6);
 
 	ptr = FPToString(osd_data.voltage, buffer);
@@ -55,6 +66,15 @@ void EXTI3_IRQHandler(void) {
 
 	ptr = intToString(osd_data.current_consumed, buffer);
 	printStringWithPlaceholder(44, 227, ptr, 5);
+
+	printStringWithPlaceholder(14, 227, defineCustomMode(osd_data.custom_mode), 10);
+
+	ARM_DISARM();
+
+	drawHorizon(osd_data.roll, osd_data.pitch);
+
+	HOME_DIRECTION();
+
 
 
 }
@@ -199,7 +219,7 @@ void TV_EXTI_init() {
 	NVIC_EnableIRQ(EXTI4_IRQn); // Включаем прерывание
 
 	NVIC_SetPriority(EXTI4_IRQn, 2);
-	NVIC_SetPriority(EXTI3_IRQn, 3);
+	NVIC_SetPriority(EXTI3_IRQn, 4);
 }
 
 void TV_generation_start() {
@@ -209,6 +229,7 @@ void TV_generation_start() {
 	clearScreen(&osd_buffer[0][0]);
 
 	OSD_STATIC_IMAGE();
+	ARM_DISARM();
 
 }
 #endif

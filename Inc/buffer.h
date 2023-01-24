@@ -111,6 +111,10 @@ static inline void setPixel(uint32_t x, uint32_t y) {
 	osd_buffer[y][x>>3] |= 1 << (x & 0x07);
 }
 
+static inline void clearPixel(uint32_t x, uint32_t y) {
+	osd_buffer[y][x>>3] &= ~(1 << (x & 0x07));
+}
+
 void drawCircle(int x0, int y0, int radius) {
 	int x = 0;
 	int y = radius;
