@@ -34,7 +34,13 @@ typedef struct __osd_data {
     int32_t lon; /*< [degE7] Longitude (WGS84, EGM96 ellipsoid)*/
     uint8_t fix_type; /*<  GPS fix type.*/
     uint8_t satellites_visible; /*<  Number of satellites visible. If unknown, set to UINT8_MAX*/
-
+    //Computed values
+    uint32_t arming_time_ms;
+    uint32_t total_distance;
+    uint32_t home_heading;
+    int32_t home_distance;
+    int32_t home_lat;
+    int32_t home_lon;
 } Osd_data;
 
 #endif /* OSD_DATA_H_ */

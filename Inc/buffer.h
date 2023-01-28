@@ -65,7 +65,7 @@ void printGrafic_32xN(uint16_t x, uint16_t y, uint32_t *symbol, uint8_t height) 
 	}
 }
 
-static inline void printString(uint8_t x, uint8_t y, uint8_t *string) {
+static inline void printString(uint8_t x, uint8_t y, char *string) {
 	int i = 0;
 	while(*string != 0) {
 		printChar(x + i, y, *string - 32);
@@ -74,11 +74,11 @@ static inline void printString(uint8_t x, uint8_t y, uint8_t *string) {
 	}
 }
 
-static inline void printStringWithPlaceholder(uint32_t x, uint32_t y, uint8_t *string, uint32_t placeHolderSize) {
+static inline void printStringWithPlaceholder(uint32_t x, uint32_t y, char *string, uint32_t placeHolderSize) {
 	uint32_t i = 0;
 	uint32_t startIndex = 0;
 	while (*string != 0) {
-		startIndex = (*string - 32) * CHAR_HEIGHT;
+		startIndex = (*string) * CHAR_HEIGHT;
 		osd_buffer[y][x] = Fixedsys8x15[startIndex];
 		osd_buffer[y + 1][x] = Fixedsys8x15[startIndex + 1];
 		osd_buffer[y + 2][x] = Fixedsys8x15[startIndex + 2];

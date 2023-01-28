@@ -7,9 +7,6 @@
 #include "utils.h"
 
 #define RX_BUFFER_SIZE0 512
-
-#define ToDeg(x) (x*57.3)
-
 void USART_init();
 void USART_write (uint8_t* data, uint16_t sz);
 void USART_writeByte(uint8_t byte);
@@ -37,7 +34,7 @@ uint8_t index1 = 0;
 void USART1_IRQHandler(void) {
 	if (READ_BIT(USART1->SR, USART_SR_RXNE)) {
 		if (mavlink_parse_char(chan, USART1->DR, &msg, &status)) {
-			contain(msg.msgid);
+			//contain(msg.msgid);
 			switch (msg.msgid) {
 			case MAVLINK_MSG_ID_ATTITUDE: {
 				osd_data.pitch = round(ToDeg(mavlink_msg_attitude_get_pitch(&msg)));
@@ -45,9 +42,17 @@ void USART1_IRQHandler(void) {
 			}
 				break;
 			case MAVLINK_MSG_ID_HEARTBEAT: {
-				osd_data.base_mode = mavlink_msg_heartbeat_get_base_mode(&msg);
 				osd_data.custom_mode = mavlink_msg_heartbeat_get_custom_mode(&msg);
 				osd_data.system_status = mavlink_msg_heartbeat_get_system_status(&msg);
+				uint8_t curr_base_mode =  mavlink_msg_heartbeat_get_base_mode(&msg);
+				//if was armed just now
+				if((curr_base_mode & MAV_MODE_FLAG_SAFETY_ARMED) && !(osd_data.base_mode & MAV_MODE_FLAG_SAFETY_ARMED)) {
+					osd_data.arming_time_ms = osd_data.time_boot_ms;
+					osd_data.home_lat = osd_data.lat;
+					osd_data.home_lon = osd_data.lon;
+					osd_data.total_distance = 0;
+				}
+				osd_data.base_mode = curr_base_mode;
 			}
 				break;
 			case MAVLINK_MSG_ID_GPS_RAW_INT: {
@@ -89,6 +94,7 @@ void USART1_IRQHandler(void) {
 				break;
 			}
 		}
+
 	}
 }
 

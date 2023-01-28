@@ -2,14 +2,20 @@
 #define UTILS_H_
 #include <math.h>
 
-#define ToDeg(x) (x*57.3)
-#define  radInDeg 0.01745329252
+#define ToDeg(x) (x*57.272729)
+#define GPSCoordToFloat(x) (x/10000000.0)
+#define radInDeg 0.01745329252
 
 typedef int32_t FixedPoint1;
 typedef int32_t FixedPoint3;
+typedef struct {
+	int32_t distance;
+	int32_t bearing;
+} HomeDistAndBearing;
+HomeDistAndBearing hdb;
 
 //hh:mm:ss
-static inline uint8_t* msToHourMinSecStr (uint32_t number, uint8_t *buffer) {
+static inline char* msToHourMinSecStr (uint32_t number, char *buffer) {
 	uint32_t hours = 0;
 	uint32_t minutes = 0;
 	uint32_t seconds = 0;
@@ -34,7 +40,38 @@ static inline FixedPoint1 toFixedPoint1(float number){
 	return number*10;
 }
 
-static inline uint8_t* FPToString(FixedPoint1 value, uint8_t *buffer) {
+static inline char* FPToString_N(FixedPoint1 value, uint32_t charsAfterPoint, char *buffer) {
+	buffer += 11;
+	*--buffer = 0;
+	if (value < 0) {
+		value = -value;
+		do {
+			*--buffer = value % 10 + '0';
+			value = value / 10;
+			charsAfterPoint--;
+		} while (charsAfterPoint != 0);
+		*--buffer = '.';
+		do {
+			*--buffer = value % 10 + '0';
+			value = value / 10;
+		} while (value != 0);
+		*--buffer = '-';
+	} else {
+		do {
+			*--buffer = value % 10 + '0';
+			value = value / 10;
+			charsAfterPoint--;
+		} while (charsAfterPoint != 0);
+		*--buffer = '.';
+		do {
+			*--buffer = value % 10 + '0';
+			value = value / 10;
+		} while (value != 0);
+	}
+	return buffer;
+}
+
+static inline char* FPToString(FixedPoint1 value, uint8_t *buffer) {
 	buffer += 11;
 	*--buffer = 0;
 	if (value < 0) {
@@ -60,7 +97,7 @@ static inline uint8_t* FPToString(FixedPoint1 value, uint8_t *buffer) {
 }
 
 //322
-static inline uint8_t* intToString(int32_t value, uint8_t *buffer) {
+static inline char* intToString(int32_t value, char *buffer) {
 	buffer += 11;
 	*--buffer = 0;
 	if (value < 0) {
@@ -83,12 +120,41 @@ static inline int32_t utils_abs(int32_t x) {
 	return x < 0 ? -x : x;
 }
 
+/*
+You can manually calculate the bearing between two points using a map, a compass, and a protractor.
+However, if you know the exact latitudes and longitudes of the points in question, you can use the following formula:
 
-  FixedPoint3 getDistanceBetweenPointsNew(float latitude1, float longitude1, float latitude2, float longitude2) {
-	  float theta = longitude1 - longitude2;
-	  float rad1 = latitude1 * radInDeg;
-	  float rad2 = latitude2 * radInDeg;
-	  return 6371000*acos(sin(rad1) * sin(rad2) + cos(rad1) * cos(rad2) * cos(theta * radInDeg));
+β = atan2(X,Y)
+Calculate X and Y as follows:
+
+X = cos θb * sin ∆L
+Y = cos θa * sin θb – sin θa * cos θb * cos ∆L
+Whereas:
+
+L represents longitude.
+θ represents latitude.
+β is the bearing.
+*/
+static inline HomeDistAndBearing* getDistanceBetweenPoints(double latitude1,
+		double longitude1, double latitude2, double longitude2) {
+	double deltaLon = (longitude2 - longitude1)*radInDeg;
+	double rad1 = latitude1 * radInDeg;
+	double rad2 = latitude2 * radInDeg;
+	double cos1 = cos(rad1);
+	double sin1 = sin(rad1);
+	double cos2 = cos(rad2);
+	double sin2 = sin(rad2);
+	double cosDelatLon = cos(deltaLon);
+
+	double X = cos2*sin(deltaLon);
+	double Y = cos1*sin2 - sin1*cos2*cosDelatLon;
+	double bearing = ToDeg(atan2(X, Y));
+	if(bearing < 0) {
+		bearing = 360 + bearing;
+	}
+	hdb.bearing = bearing;
+	hdb.distance = 6371000 * acos(sin1 * sin2 + cos1 * cos2 * cosDelatLon);
+	return &hdb;
 }
 
 #endif /* UTILS_H_ */

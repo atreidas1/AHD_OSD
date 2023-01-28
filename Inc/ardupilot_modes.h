@@ -3,7 +3,7 @@
 /*
  * ArduPilotmodes
  */
-static inline uint8_t* defineCustomMode(uint32_t code) {
+static inline char* defineCustomMode(uint32_t code) {
 	switch (code) {
 		case 0: return "MANUAL";
 		case 1: return "CIRCLE";

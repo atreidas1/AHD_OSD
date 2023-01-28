@@ -12,79 +12,77 @@
 //const uint16_t END_STR = 735;
 #define LINES_PER_PIXEL 3
 
+static inline void drawOSDData();
+
 volatile uint8_t isFrame = 0;
 volatile uint16_t strCounter = 0;
 volatile uint8_t strRepitCounter = 0;
 volatile uint16_t currentBufferStr = 0;
-
-
-
-
-uint8_t serialBuffer[100];
-uint8_t str_attitude1[] = "time_boot_ms: %10d";
-
-uint16_t second = 0;
-uint8_t frames = 0;
-uint8_t buffer[12];
+volatile uint32_t frameCounter = 0;
+char buffer[20];
 
 void EXTI3_IRQHandler(void) {
 	SET_BIT(EXTI->PR, EXTI_PR_PR3); //Считаем Кадры PR - регистр ожидания. Если не записать 1 то не выйдем из прерывания
 	strCounter = 0;
 	isFrame = 1;
 	currentBufferStr = 0;
-
-	uint8_t *ptr;
-	ptr = intToString(osd_data.satellites_visible, buffer);
-	printStringWithPlaceholder(25, 4, ptr, 2);
-
-	ptr = intToString(osd_data.alt, buffer);
-	printStringWithPlaceholder(44, 108, ptr, 4);
-
-	ptr = msToHourMinSecStr(osd_data.time_boot_ms, buffer);
-	printStringWithPlaceholder(4, 227, ptr, 8);
-
-	if(osd_data.climb > 0){
-		printString(44, 122, "+");
-	}
-	else if(osd_data.climb < 0){
-		printString(44, 122, "-");
-	}
-	else{
-		printString(44, 122, " ");
-	}
-	ptr = FPToString(utils_abs(osd_data.climb), buffer);
-	printStringWithPlaceholder(45, 122, ptr, 6);
-
-	ptr = FPToString(osd_data.voltage, buffer);
-	printStringWithPlaceholder(25, 227, ptr, 4);
-
-	ptr = intToString(osd_data.groundspeed, buffer);
-	printStringWithPlaceholder(4, 108, ptr, 3);
-
-	ptr = FPToString(osd_data.current_battery, buffer);
-	printStringWithPlaceholder(33, 227, ptr, 5);
-
-	ptr = intToString(osd_data.current_consumed, buffer);
-	printStringWithPlaceholder(44, 227, ptr, 5);
-
-	printStringWithPlaceholder(14, 227, defineCustomMode(osd_data.custom_mode), 10);
-
-	ARM_DISARM();
-
-	drawHorizon(osd_data.roll, osd_data.pitch);
-
-	HOME_DIRECTION();
-
-
-
+	frameCounter++;
+	frameCounter = frameCounter == 30 ? frameCounter : 0;
+	drawOSDData();
 }
 
+/*
+ *
+ *Каждый нечётный кадр отрисовываем горизонт
+ *Каждый нулевой(раз в секунду) отрисовываем: время, вольтаж, ток, потраченный ток,
+ *
+ */
+static inline void drawOSDData() {
+	if (frameCounter & 1) {
+		drawHorizon(osd_data.roll, osd_data.pitch);
+		HOME_DIRECTION();
+		return;
+	}
+	if(frameCounter == 0) {
+		printStringWithPlaceholder(4, 227, msToHourMinSecStr(osd_data.time_boot_ms - osd_data.arming_time_ms, buffer), 8);
+		printStringWithPlaceholder(25, 227, FPToString(osd_data.voltage, buffer), 4);
+		printStringWithPlaceholder(33, 227, FPToString(osd_data.current_battery, buffer), 5);
+		printStringWithPlaceholder(44, 227, intToString(osd_data.current_consumed, buffer), 5);
+		printStringWithPlaceholder(14, 227, defineCustomMode(osd_data.custom_mode), 10);
+		printStringWithPlaceholder(25, 4, intToString(osd_data.satellites_visible, buffer), 2);
+		ARM_DISARM();
+		return;
+	}
+	if(frameCounter == 2 || frameCounter == 8 || frameCounter == 16 || frameCounter == 24) {
+		printStringWithPlaceholder(44, 108, intToString(osd_data.alt, buffer), 4);
+		if (osd_data.climb > 0) {
+			printString(44, 122, "+");
+		} else if (osd_data.climb < 0) {
+			printString(44, 122, "-");
+		} else {
+			printString(44, 122, " ");
+		}
+		printStringWithPlaceholder(45, 122, FPToString(utils_abs(osd_data.climb), buffer), 6);
+		printStringWithPlaceholder(4, 108, intToString(osd_data.groundspeed, buffer), 3);
+		printStringWithPlaceholder(4, 30, intToString(hdb->distance, buffer), 7);
+		return;
+	}
+	if(frameCounter == 4 && osd_data.home_lat && osd_data.home_lon) {
+		HomeDistAndBearing *hdb = getDistanceBetweenPoints(GPSCoordToFloat(osd_data.lat), GPSCoordToFloat(osd_data.lon),
+				GPSCoordToFloat(osd_data.home_lat), GPSCoordToFloat(osd_data.home_lon));
+		osd_data.home_distance = hdb->distance;
+		osd_data.home_heading = hdb->bearing > osd_data.heading ?
+				360 - (hdb->bearing - osd_data.heading):
+				osd_data.heading - hdb->bearing;
+		return;
+	}
+	if(frameCounter == 6) {
 
+	}
+}
 
 void EXTI4_IRQHandler(void) {
 	SET_BIT(EXTI->PR, EXTI_PR_PR4); //Считаем строки PR - регистр ожидания. Если не записать 1 то не выйдем из прерывания
-
-
 	if (isFrame) {
 		strCounter++;
 
@@ -92,7 +90,6 @@ void EXTI4_IRQHandler(void) {
 			DMA1_Channel3->CCR &= ~DMA_CCR_EN;
 			SPI1->CR1 |= (SPI_CR1_SSI);
 			TIM2->CR1 &= ~TIM_CR1_CEN;
-			uint16_t *ptr = &osd_buffer[currentBufferStr];
 
 			DMA1_Channel3->CMAR = (uint32_t) &osd_buffer[currentBufferStr];
 			DMA1_Channel3->CNDTR = BUFFER_COLUMNS/2;
@@ -120,8 +117,6 @@ void SPI1_DMA_Init() {
 	//Настройка SPI1
 	//PA5 - SCK (floating input)
 	//PA6 - MISO (Alternate function PUSH/PULL)
-
-
 	RCC->APB2ENR |= (RCC_APB2ENR_SPI1EN | RCC_APB2ENR_IOPAEN);
 	GPIOA->CRL &= ~(GPIO_CRL_CNF5_0 | GPIO_CRL_CNF6_0);
 	GPIOA->CRL |= (GPIO_CRL_CNF5_0| GPIO_CRL_MODE6_0 | GPIO_CRL_MODE6_1 | GPIO_CRL_CNF6_1);
@@ -135,11 +130,8 @@ void SPI1_DMA_Init() {
 	DMA1_Channel3->CPAR = (uint32_t) &(SPI1->DR);
 
 	DMA1_Channel3->CCR |= (DMA_CCR_PSIZE_0| DMA_CCR_MSIZE_0 | DMA_CCR_MINC | DMA_CCR_DIR );
-
-
-
-
 }
+
 
 void SPI_DMA_write(uint16_t *data, uint16_t size) {
 	DMA1_Channel3->CCR &= ~DMA_CCR_EN;
@@ -230,6 +222,5 @@ void TV_generation_start() {
 
 	OSD_STATIC_IMAGE();
 	ARM_DISARM();
-
 }
 #endif
