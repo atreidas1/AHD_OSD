@@ -1,12 +1,15 @@
 #ifndef TV_GENERATION_H_
 #define TV_GENERATION_H_
 
+#include "graphic_speed.h"
+#include "graphic_climb.h"
 #include <stm32f1xx.h>
 #include "buffer.h"
 #include "osd_position.h"
 #include "utils.h"
 #include "ardupilot_modes.h"
 #include "horizon.h"
+
 
 #define START_LINE 30
 //const uint16_t END_STR = 735;
@@ -27,9 +30,10 @@ void EXTI3_IRQHandler(void) {
 	isFrame = 1;
 	currentBufferStr = 0;
 	frameCounter++;
-	frameCounter = frameCounter == 30 ? frameCounter : 0;
+	frameCounter = frameCounter < 30 ? frameCounter : 0;
 	drawOSDData();
 }
+
 
 /*
  *
@@ -40,7 +44,7 @@ void EXTI3_IRQHandler(void) {
 static inline void drawOSDData() {
 	if (frameCounter & 1) {
 		drawHorizon(osd_data.roll, osd_data.pitch);
-		HOME_DIRECTION();
+		HOME_DIRECTION(osd_data.home_heading);
 		return;
 	}
 	if(frameCounter == 0) {
@@ -50,7 +54,11 @@ static inline void drawOSDData() {
 		printStringWithPlaceholder(44, 227, intToString(osd_data.current_consumed, buffer), 5);
 		printStringWithPlaceholder(14, 227, defineCustomMode(osd_data.custom_mode), 10);
 		printStringWithPlaceholder(25, 4, intToString(osd_data.satellites_visible, buffer), 2);
-		ARM_DISARM();
+		ARM_DISARM(osd_data.base_mode);
+		//Вывод состояния GPS (NO GPS, NO Fix, 2D Fix, 3D Fix)
+		GPS_Fix(osd_data.fix_type);
+		printStringWithPlaceholder(4, 3, FPToString_N(osd_data.lat, 7, buffer) , 11);
+		printStringWithPlaceholder(41, 3, FPToString_N(osd_data.lon, 7, buffer) , 11);
 		return;
 	}
 	if(frameCounter == 2 || frameCounter == 8 || frameCounter == 16 || frameCounter == 24) {
@@ -64,21 +72,24 @@ static inline void drawOSDData() {
 		}
 		printStringWithPlaceholder(45, 122, FPToString(utils_abs(osd_data.climb), buffer), 6);
 		printStringWithPlaceholder(4, 108, intToString(osd_data.groundspeed, buffer), 3);
-		printStringWithPlaceholder(4, 30, intToString(hdb->distance, buffer), 7);
+		printStringWithPlaceholder(4, 35, intToString(osd_data.home_distance, buffer), 7);
+		GRAPH_GROUND_SPEED(osd_data.groundspeed);
+		GRAPHIC_CLIMB(osd_data.climb);
 		return;
 	}
+
 	if(frameCounter == 4 && osd_data.home_lat && osd_data.home_lon) {
 		HomeDistAndBearing *hdb = getDistanceBetweenPoints(GPSCoordToFloat(osd_data.lat), GPSCoordToFloat(osd_data.lon),
 				GPSCoordToFloat(osd_data.home_lat), GPSCoordToFloat(osd_data.home_lon));
-		osd_data.home_distance = hdb->distance;
-		osd_data.home_heading = hdb->bearing > osd_data.heading ?
-				360 - (hdb->bearing - osd_data.heading):
-				osd_data.heading - hdb->bearing;
+		int x = osd_data.heading - hdb->bearing;
+	    if(x <0) {
+		      osd_data.home_heading = utils_abs(x);
+	    } else {
+		      osd_data.home_heading = utils_abs(x - 360);
+	    }
 		return;
 	}
-	if(frameCounter == 6) {
 
-	}
 }
 
 void EXTI4_IRQHandler(void) {
@@ -221,6 +232,6 @@ void TV_generation_start() {
 	clearScreen(&osd_buffer[0][0]);
 
 	OSD_STATIC_IMAGE();
-	ARM_DISARM();
+
 }
 #endif

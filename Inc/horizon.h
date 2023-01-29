@@ -6,6 +6,9 @@
 #define Y_0 113
 
 #define MAX_Y_SHIFT 50
+
+#define PIXELS_PER_PITCH_DEGREE 3
+
 #define MAX_ROL_DEEGREES 45
 #define PIXELS_PER_PITCH_DEGREE 1
 

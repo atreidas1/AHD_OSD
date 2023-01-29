@@ -20,7 +20,7 @@ static inline char* defineCustomMode(uint32_t code) {
 		case 13: return "TAKEOFF";
 		case 14: return "AVOID_ADSB";
 		case 15: return "GUIDED";
-		case 16: return "INITIALISING";
+		case 16: return "INIT";
 		case 24: return "THERMAL";
 		default:
 			return "UNKNOWN";

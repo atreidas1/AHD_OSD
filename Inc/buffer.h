@@ -4,6 +4,7 @@
 #include "font.h"
 #include "usart1.h"
 
+
 #define BUFFER_COLUMNS 52
 #define BUFFER_LINES 240
 
@@ -68,7 +69,7 @@ void printGrafic_32xN(uint16_t x, uint16_t y, uint32_t *symbol, uint8_t height) 
 static inline void printString(uint8_t x, uint8_t y, char *string) {
 	int i = 0;
 	while(*string != 0) {
-		printChar(x + i, y, *string - 32);
+		printChar(x + i, y, *string);
 		string++;
 		i++;
 	}
