@@ -5,6 +5,7 @@
 #include "mavlink/mavlink.h"
 #include "osd_data.h"
 #include "utils.h"
+#include "ms_counter.h"
 
 #define RX_BUFFER_SIZE0 512
 void USART_init();
@@ -51,6 +52,7 @@ void USART1_IRQHandler(void) {
 					osd_data.home_lat = osd_data.lat;
 					osd_data.home_lon = osd_data.lon;
 					osd_data.total_distance = 0;
+					osd_data.gsLastUpdatedTime = 0;
 				}
 				osd_data.base_mode = curr_base_mode;
 			}
@@ -75,8 +77,18 @@ void USART1_IRQHandler(void) {
 				break;
 			case MAVLINK_MSG_ID_VFR_HUD: {
 				osd_data.airspeed = mavlink_msg_vfr_hud_get_airspeed(&msg)*36;
-				osd_data.groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg)*3.6;
-				//osd_data.alt = mavlink_msg_vfr_hud_get_alt(&msg);
+				float gsInMS = mavlink_msg_vfr_hud_get_groundspeed(&msg);
+				osd_data.groundspeed = gsInMS*3.6;
+				if(osd_data.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) {
+					uint32_t currTime = BOOT_MS;
+					if(osd_data.gsLastUpdatedTime) {
+						uint32_t delaT = osd_data.gsLastUpdatedTime > currTime ?
+								16383 - osd_data.gsLastUpdatedTime + currTime :
+								currTime - osd_data.gsLastUpdatedTime;
+						osd_data.total_distance += (delaT/1000.0)*gsInMS;
+					}
+					osd_data.gsLastUpdatedTime = currTime;
+				}
 				osd_data.climb = toFixedPoint1(mavlink_msg_vfr_hud_get_climb(&msg));
 				osd_data.heading = mavlink_msg_vfr_hud_get_heading(&msg);
 				osd_data.throttle = mavlink_msg_vfr_hud_get_throttle(&msg);
@@ -87,17 +99,12 @@ void USART1_IRQHandler(void) {
 				osd_data.rssi = mavlink_msg_rc_channels_get_rssi(&msg);
 				osd_data.time_boot_ms = mavlink_msg_rc_channels_get_time_boot_ms(&msg);
 			}
-
 		     	break;
-
 			case MAVLINK_MSG_ID_GLOBAL_POSITION_INT: {
 				osd_data.alt = mavlink_msg_global_position_int_get_relative_alt(&msg)/1000;
-				osd_data.lat = mavlink_msg_global_position_int_get_lat(&msg);///10000000.0;
-				osd_data.lon = mavlink_msg_global_position_int_get_lon(&msg);///10000000.0;
-
-				//osd_data.alt2 = mavlink_msg_global_position_int_cov_get_alt(&msg);
+				osd_data.lat = mavlink_msg_global_position_int_get_lat(&msg);
+				osd_data.lon = mavlink_msg_global_position_int_get_lon(&msg);
 			}
-
 				break;
 			default:
 				break;
