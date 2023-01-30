@@ -83,7 +83,7 @@ void USART1_IRQHandler(void) {
 					uint32_t currTime = BOOT_MS;
 					if(osd_data.gsLastUpdatedTime) {
 						uint32_t delaT = osd_data.gsLastUpdatedTime > currTime ?
-								16383 - osd_data.gsLastUpdatedTime + currTime :
+								32767 - osd_data.gsLastUpdatedTime + currTime :
 								currTime - osd_data.gsLastUpdatedTime;
 						osd_data.total_distance += (delaT/1000.0)*gsInMS;
 					}

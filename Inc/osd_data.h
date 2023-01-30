@@ -37,11 +37,12 @@ typedef struct __osd_data {
     //Computed values
     uint8_t isArmed;
     uint32_t arming_time_ms;
-    uint32_t total_distance;
+    float total_distance;
     uint32_t home_heading;
     int32_t home_distance;
     int32_t home_lat;
     int32_t home_lon;
+    uint32_t gsLastUpdatedTime;
 } Osd_data;
 
 #endif /* OSD_DATA_H_ */

@@ -4,7 +4,6 @@
 #include "font.h"
 #include "usart1.h"
 
-
 #define BUFFER_COLUMNS 52
 #define BUFFER_LINES 240
 

@@ -94,7 +94,7 @@ void ARM_DISARM(uint8_t ARMED){
 
 void GPS(){
 
-printGrafic_8xN(2, 1, &SpecialFonts8x15[LAT], 15); //LAT
+printGrafic_8xN(1, 1, &SpecialFonts8x15[LAT], 15); //LAT
 printGrafic_8xN(39, 1, &SpecialFonts8x15[LON], 15); //LON
 printGrafic_16xN(23, 0, &SpecialFonts16x15[SAT], 15); //SAT
 
@@ -121,8 +121,8 @@ void GPS_Fix(uint8_t gps_fix){
 void NAVIGATION(){
 
 	//printGrafic_32xN(23, 15, &SpecialFonts32x30[heading], 30); //Home direction
-	printGrafic_16xN(2, 30, &SpecialFonts16x15[HOME_DIST_ICON], 15); //HOME Dist
-	printGrafic_16xN(2, 45, &SpecialFonts16x15[TRIP], 15); //TRIP
+	printGrafic_16xN(1, 22, &SpecialFonts16x15[HOME_DIST_ICON], 15); //HOME Dist
+	printGrafic_16xN(1, 37, &SpecialFonts16x15[TRIP], 15); //TRIP
 	printGrafic_8xN(8, 60, &SpecialFonts8x105[LEFT_LIMB], 105); //LEFT LIMB
 	printGrafic_8xN(42, 60, &SpecialFonts8x105[RIGHT_LIMB], 105); //RIGHT LIMB
 
@@ -140,8 +140,8 @@ void NAVIGATION(){
 	printGrafic_32xN(44, 128, &SpecialFonts32x15[ms_LEFT], 15); // m/s левая часть
 	printGrafic_8xN(48, 128, &SpecialFonts8x15[ms_RIGHT], 15); // m/s правая часть
 
-	printGrafic_32xN(44, 151, &SpecialFonts32x15[GLD_DIST_PART_ONE], 15); // GLD DIST левая часть
-	printGrafic_8xN(48, 151, &SpecialFonts8x15[GLD_DIST_PART_TWO], 15); // GLD DIST правая часть
+	printGrafic_32xN(44, 82, &SpecialFonts32x15[GLD_DIST_PART_ONE], 15); // GLD DIST левая часть
+	printGrafic_8xN(48, 82, &SpecialFonts8x15[GLD_DIST_PART_TWO], 15); // GLD DIST правая часть
 
 
 
@@ -150,8 +150,8 @@ void NAVIGATION(){
 
 void ELECTRIC_TIME(){
 
-	printGrafic_16xN(2, 223, &SpecialFonts16x15[FLIGHT_TIME], 15); // FLIGHT TIME
-	printString(24, 227, "V");
+	printGrafic_16xN(1, 223, &SpecialFonts16x15[FLIGHT_TIME], 15); // FLIGHT TIME
+	printString(23, 227, "V");
 	printString(30, 227, "A");
 	printGrafic_8xN(36, 223, &SpecialFonts8x15[EFF], 15); // EFF
 
