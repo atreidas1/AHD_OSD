@@ -15,7 +15,7 @@
 void GRAPHIC_CLIMB(int16_t climb){
 
 
-	osd_buffer[ZERO_CLIMB_POS_Y][POSITION_X] = PRES_HOLDER;
+	//osd_buffer[ZERO_CLIMB_POS_Y][POSITION_X] = PRES_HOLDER;
 	int16_t endFillY = ZERO_CLIMB_POS_Y - climb;
 
 	for (uint8_t i = START_Y_POS; i < END_Y_POS; i++) {

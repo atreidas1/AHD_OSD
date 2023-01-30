@@ -34,7 +34,7 @@ uint8_t index1 = 0;
 void USART1_IRQHandler(void) {
 	if (READ_BIT(USART1->SR, USART_SR_RXNE)) {
 		if (mavlink_parse_char(chan, USART1->DR, &msg, &status)) {
-			//contain(msg.msgid);
+			contain(msg.msgid);
 			switch (msg.msgid) {
 			case MAVLINK_MSG_ID_ATTITUDE: {
 				osd_data.pitch = round(ToDeg(mavlink_msg_attitude_get_pitch(&msg)));
@@ -92,8 +92,8 @@ void USART1_IRQHandler(void) {
 
 			case MAVLINK_MSG_ID_GLOBAL_POSITION_INT: {
 				osd_data.alt = mavlink_msg_global_position_int_get_relative_alt(&msg)/1000;
-				osd_data.lat = mavlink_msg_global_position_int_get_lat(&msg)/10000000.0;
-				osd_data.lon = mavlink_msg_global_position_int_get_lon(&msg)/10000000.0;
+				osd_data.lat = mavlink_msg_global_position_int_get_lat(&msg);///10000000.0;
+				osd_data.lon = mavlink_msg_global_position_int_get_lon(&msg);///10000000.0;
 
 				//osd_data.alt2 = mavlink_msg_global_position_int_cov_get_alt(&msg);
 			}

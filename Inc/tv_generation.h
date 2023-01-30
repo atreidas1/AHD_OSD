@@ -10,7 +10,6 @@
 #include "ardupilot_modes.h"
 #include "horizon.h"
 
-
 #define START_LINE 30
 //const uint16_t END_STR = 735;
 #define LINES_PER_PIXEL 3
@@ -50,15 +49,34 @@ static inline void drawOSDData() {
 	if(frameCounter == 0) {
 		printStringWithPlaceholder(4, 227, msToHourMinSecStr(osd_data.time_boot_ms - osd_data.arming_time_ms, buffer), 8);
 		printStringWithPlaceholder(25, 227, FPToString(osd_data.voltage, buffer), 4);
-		printStringWithPlaceholder(33, 227, FPToString(osd_data.current_battery, buffer), 5);
+		printStringWithPlaceholder(31, 227, FPToString(osd_data.current_battery, buffer), 5);
 		printStringWithPlaceholder(44, 227, intToString(osd_data.current_consumed, buffer), 5);
 		printStringWithPlaceholder(14, 227, defineCustomMode(osd_data.custom_mode), 10);
 		printStringWithPlaceholder(25, 4, intToString(osd_data.satellites_visible, buffer), 2);
 		ARM_DISARM(osd_data.base_mode);
+
 		//Вывод состояния GPS (NO GPS, NO Fix, 2D Fix, 3D Fix)
 		GPS_Fix(osd_data.fix_type);
 		printStringWithPlaceholder(4, 3, FPToString_N(osd_data.lat, 7, buffer) , 11);
 		printStringWithPlaceholder(41, 3, FPToString_N(osd_data.lon, 7, buffer) , 11);
+
+		//Вывод значение GLD DIST (рассчетное значение дистанции планирования)
+		if (osd_data.alt > 0 && osd_data.climb < 0) {
+				int32_t gld_dist = 0;
+				gld_dist = (((osd_data.groundspeed * 10000) / 3600) * osd_data.alt) / utils_abs(osd_data.climb);
+				printStringWithPlaceholder(44, 146, intToString(gld_dist, buffer), 5);
+			}
+			else{
+				printStringWithPlaceholder(44, 146, "-----", 5);
+			}
+
+		//Выводим значение эффективности
+		int16_t eff = 0;
+		if(osd_data.groundspeed > 0){
+		eff = ((osd_data.current_battery)*100) / osd_data.groundspeed;
+		printStringWithPlaceholder(38, 227, intToString(eff, buffer), 3);
+		}
+
 		return;
 	}
 	if(frameCounter == 2 || frameCounter == 8 || frameCounter == 16 || frameCounter == 24) {
